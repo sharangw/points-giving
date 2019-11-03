@@ -1,0 +1,58 @@
+{% extends "adminBase.html" %}
+{% block content %}
+
+<a style="font-size: 20px;" href="/admin/add">Add Venue</a>
+<br><br>
+
+    {# [START form] #}
+    <h4>Remove Venue</h4>
+    <form method="POST" enctype="multipart/form-data">
+
+        <select id="venues" name="venues">
+        <option value="" selected disabled hidden>Choose Venue</option>
+        {% for venue in venues%}
+            <option value="{{venue}}">{{venue.name}}</option>
+        {% endfor %}
+        </select>
+
+        <button type="submit" class="btn btn-danger">Remove</button>
+    </form>
+    {# [END form] #}
+
+    <h3>Venues</h3>
+
+    <div class="media">
+      <table border="1">
+      {% if venues %}
+        <thead>
+        <th style="padding:20px">Name</th>
+        <th style="padding:20px">Description</th>
+        <th style="padding:20px">ID</th>
+       </thead>
+       {% else %}
+       {% endif %}
+
+       {% for venue in venues %}
+       <tbody>
+        <tr>
+           <td style="padding:20px">{{venue.name}}</a></td>
+            <td style="padding:20px">{{venue.description}}</td>
+            <td style="padding:20px">{{venue.id}}</td>
+        </tr>
+       </tbody>
+      {% else %}
+      <p>No venues found</p>
+      {% endfor %}
+      </table>
+    </div>
+
+    <br><br><br>
+    {% if next_page_token %}
+    <nav>
+      <ul class="pager">
+        <li><a href="?page_token={{next_page_token}}">More</a></li>
+      </ul>
+    </nav>
+    {% endif %}
+
+    {% endblock %}

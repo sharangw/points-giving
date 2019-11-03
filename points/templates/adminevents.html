@@ -1,0 +1,58 @@
+{% extends "adminBase.html" %}
+
+{% block content %}
+<h3>Manage Events and Users</h3>
+
+<div class="media">
+  <table border="1">
+      {% if events %}
+      <thead>
+        <th style="padding:10px">Organizer</th>
+        <th style="padding:10px">Date and Time</th>
+        <th style="padding:10px">Length</th>
+        <th style="padding:10px">Description</th>
+        <th style="padding:10px">Venue</th>
+      </thead>
+      {% for event in events %}
+      <tbody>
+        <tr>
+            <td style="padding:10px">{{event.organizer}}</td>
+            <td style="padding:10px">{{event.time.strftime('%B %d at %I:%M %p')}}</td>
+            <td style="padding:10px">{{event.length}} minutes</td>
+            <td style="padding:10px">{{event.description}}</td>
+            <td style="padding:10px">{{event.venueId}}</td>
+        </tr>
+      </tbody>
+      {% else %}
+      <p>No events found</p>
+      {% endfor %}
+  </table>
+      {% else %}
+      <p>{{users.name}} has not joined any events!</p>
+      {% endif %}
+</div>
+
+<br>
+
+<a href="/{{users.id}}/events" class="btn btn-success btn-sm">
+  Join an event
+</a>
+
+<a href="/admin/events" class="btn btn-warning btn-sm">
+  Remove an event
+</a>
+
+<a href="/admin/users" class="btn btn-warning btn-sm">
+  Remove a user
+</a>
+
+{% if next_page_token %}
+<nav>
+  <ul class="pager">
+    <li><a href="?page_token={{next_page_token}}">More</a></li>
+  </ul>
+</nav>
+{% endif %}
+
+
+{% endblock %}

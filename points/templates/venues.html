@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h3>See All Venues</h3>
+
+<br>
+
+<h4>Venue Info</h4>
+
+<div class="media">
+  <table border="1">
+      {% if venues %}
+      <thead>
+        <th style="padding:20px">Name</th>
+        <th style="padding:20px">Description</th>
+        <th style="padding:20px">ID</th>
+      </thead>
+      {% else %}
+      {% endif %}
+
+      {% for venue in venues %}
+      <tbody>
+        <tr>
+           <td style="padding:20px">{{venue.name}}</a></td>
+            <td style="padding:20px">{{venue.description}}</td>
+            <td style="padding:20px">{{venue.id}}</td>
+        </tr>
+      </tbody>
+      {% else %}
+      <p>No venues found</p>
+      {% endfor %}
+  </table>
+</div>
+
+
+{% if next_page_token %}
+<nav>
+  <ul class="pager">
+    <li><a href="?page_token={{next_page_token}}">More</a></li>
+  </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

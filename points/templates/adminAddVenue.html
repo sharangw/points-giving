@@ -1,0 +1,33 @@
+{# [START form] #}
+{% extends "adminBase.html" %}
+
+{% block content %}
+<h3>{{action}}</h3>
+
+<h4>Add another Pick Up Sports venue!</h4> <br>
+
+<form method="POST" enctype="multipart/form-data">
+
+   <div class="form-group">
+    <label for="name">Name</label>
+    <input type="text" name="name" id="name" class="form-control" style="width:55%" required/>
+  </div>
+
+  <div class="form-group">
+    <label for="location">Location</label>
+    <input type="text" name="location" id="location" class="form-control" style="width:55%" required/>
+  </div>
+
+   <div class="form-group">
+    <label for="description">Description</label>
+    <input type="text" name="description" id="description" class="form-control" style="width:55%" required/>
+  </div>
+
+   <p style="color:red">All above fields are mandatory</p>
+
+  <button type="submit" class="btn btn-success">Add</button>
+</form>
+
+
+<!--{% endblock %}-->
+{# [END form] #}

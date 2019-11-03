@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h3>Events</h3>
+
+<div class="media">
+  <table border="1">
+      {% if events %}
+      <thead>
+        <th style="padding:10px">Organizer</th>
+        <th style="padding:10px">Date and Time</th>
+        <th style="padding:10px">Length</th>
+        <th style="padding:10px">Description</th>
+        <th style="padding:10px">Venue</th>
+      </thead>
+      {% else %}
+      {% endif %}
+
+      {% for event in events %}
+      <tbody>
+        <tr>
+           <td style="padding:10px"><a href="/{{users.id}}/join/{{event.id}}">{{event.organizer}}</a></td>
+            <td style="padding:10px">{{event.time.strftime('%B %d at %I:%M %p')}}</td>
+            <td style="padding:10px">{{event.length}} minutes</td>
+            <td style="padding:10px">{{event.description}}</td>
+            <td style="padding:10px">{{event.Venue.name}}</td>
+        </tr>
+      </tbody>
+      {% else %}
+      <p>No events found</p>
+      {% endfor %}
+  </table>
+</div>
+
+<br><br>
+
+{# [START form] #}
+<h4>Where do you want to play?</h4>
+<form method="POST" enctype="multipart/form-data">
+
+    <select id="venues" name="venues">
+    <option value="" selected disabled hidden>Choose Venue here</option>
+    {% for venue in venues%}
+        <option value="{{venue}}">{{venue.name}}</option>
+    {% endfor %}
+    </select>
+
+    <button type="submit" class="btn btn-success">Search</button>
+</form>
+
+<a href="/{{users.id}}/events">Go Back to All Events</a>
+{# [END form] #}
+
+{% endblock %}

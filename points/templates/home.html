@@ -1,0 +1,34 @@
+{# [START form] #}
+{% extends "base.html" %}
+
+{% block content %}
+<h3>{{action}}</h3>
+
+<h4 style="font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif; font-size:30px;">Welcome to Pick Up Sports!</h4> <br>
+
+<form method="POST" enctype="multipart/form-data">
+
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input type="text" name="email" id="email" class="form-control" style="width:35%"/>
+  </div>
+
+  <div class="form-group">
+    <label for="email">Password</label>
+    <input type="password" name="password" id="password" class="form-control" style="width:35%"/>
+  </div>
+
+  <button type="submit" class="btn btn-success">Log In</button>
+</form>
+
+<br>
+{% if invalid %}
+<p style="color:red">Wrong username/password. Please try again.</p>
+{% endif %}
+
+<br>
+<h3>New User?</h3>
+<a style="font-size: 20px;" href="/signup">Sign up</a>
+
+<!--{% endblock %}-->
+{# [END form] #}

@@ -1,0 +1,27 @@
+{# [START form] #}
+{% extends "base.html" %}
+
+{% block content %}
+<h3>{{action}} user</h3>
+
+<form method="POST" enctype="multipart/form-data">
+
+  <div class="form-group">
+    <label for="name">Name</label>
+    <input type="text" name="name" id="name" value="{{user.name}}" class="form-control"/>
+  </div>
+
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input type="text" name="email" id="email" value="{{user.email}}" class="form-control"/>
+  </div>
+
+  <div class="form-group">
+    <label for="phone">Phone</label>
+    <input type="text" name="phone" id="phone" value="{{user.phone}}" class="form-control"/>
+  </div>
+
+  <button type="submit" class="btn btn-success">Create</button>
+</form>
+
+{# [END form] #}

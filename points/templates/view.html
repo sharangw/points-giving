@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<h3>User</h3>
+
+<div class="media">
+  <div class="media-body">
+    <h4 class="user-name">
+      {{user.name}}
+    </h4>
+    <h5 class="user-email">
+      {{user.email}}
+    </h5>
+  </div>
+</div>
+
+
+{% endblock %}
