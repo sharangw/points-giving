@@ -30,5 +30,5 @@ beta_settings:
     #   "project:region:cloudsql-instance"
     # You must also update the values in config.py.
     #
-   cloud_sql_instances: "pointsgiving:us-central1:apadproject"
+   cloud_sql_instances: "pointsgiving:us-central1:points-giving-instance"
 #[END cloudsql_settings]

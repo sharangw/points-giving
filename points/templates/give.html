@@ -1,0 +1,30 @@
+{% extends "points.html" %}
+
+{% block content %}
+
+<h3>Employees</h3>
+
+<div class="media">
+  <table border="1">
+      {% if employees %}
+      <thead>
+        <th style="padding:10px">Name</th>
+        <th style="padding:10px">Points</th>
+      </thead>
+      {% else %}
+      {% endif %}
+
+      {% for emp in employees %}
+      <tbody>
+        <tr>
+           <td style="padding:10px">{{emp.name}}</td>
+           <td style="padding:10px">{{emp.pointsReceived}}</td>
+        </tr>
+      </tbody>
+      {% else %}
+      <p>No employees found</p>
+      {% endfor %}
+  </table>
+</div>
+
+{% endblock %}

@@ -32,7 +32,7 @@ DATA_BACKEND = 'cloudsql'
 
 # Google Cloud Project ID. This can be found on the 'Overview' page at
 # https://console.developers.google.com
-PROJECT_ID = 'stanleyproject1'
+PROJECT_ID = 'pointsgiving'
 
 # CloudSQL & SQLAlchemy configuration
 # Replace the following values the respective values of your Cloud SQL
@@ -43,7 +43,7 @@ CLOUDSQL_DATABASE = 'points'
 # Set this value to the Cloud SQL connection name, e.g.
 #   "project:region:cloudsql-instance".
 # You must also update the value in app.yaml.
-CLOUDSQL_CONNECTION_NAME = 'pointsgiving:us-central1:apadproject'
+CLOUDSQL_CONNECTION_NAME = 'pointsgiving:us-central1:points-giving-instance'
 
 # The CloudSQL proxy is used locally to connect to the cloudsql instance.
 # To start the proxy, use:
