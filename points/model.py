@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from datetime import date
 
 from flask import Flask, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -60,46 +61,27 @@ class Employee(db.Model):
         print("verifying")
         if bcrypt.checkpw(password.encode('utf-8'), self.password.encode('utf-8')):
             print("Passwords match")
+            return True
         else:
             print("Passwords don't match")
+            return False
 
     def __repr__(self):
         return "<Employee(name='%s', points=%s)" % (self.name, str(self.pointsReceived-self.pointsGiven))
 
-# class User(db.Model):
-#     __tablename__ = 'users'
-#
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String(255))
-#     email = db.Column(db.String(255))
-#     phone = db.Column(db.String(255))
-#     password = db.Column(db.String(255))
-#     admin = db.Column(db.String(255), default="0")
-#
-#     def __repr__(self):
-#         return "<User(name='%s', email=%s)" % (self.name, self.email)
-#
-#     def toJson(self):
-#         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-#
-#
-# class Event(db.Model):
-#     __tablename__ = 'events'
-#
-#     id = db.Column(db.Integer, primary_key=True)
-#     organizer = db.Column(db.String(255))
-#     players = db.Column(db.Integer)
-#     time = db.Column(db.DateTime)
-#     length = db.Column(db.Integer)
-#     capacity = db.Column(db.Integer)
-#     description = db.Column(db.String(255))
-#     venueId = db.Column(db.Integer)
-#
-#     def __repr__(self):
-#         return "<Event(organizer='%s', description=%s, players=%d)" % (self.organizer, self.description, self.players)
-#
-#     def toJson(self):
-#         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+
+class Transaction(db.Model):
+    __tablename__ = 'transaction'
+
+    transactionid = db.Column(db.Integer, primary_key=True)
+    transactiondate = db.Column(db.Date)
+    points = db.Column(db.Integer)
+    senderid = db.Column(db.Integer)
+    receiverid = db.Column(db.Integer)
+
+    def __repr__(self):
+        return "<Transaction(points='%s', sender=%s, receiver=%d)" % (self.points, self.senderid, self.receiverid)
+
 #
 # class Venue(db.Model):
 #     __tablename__ = 'venues'
@@ -124,24 +106,23 @@ class Employee(db.Model):
 # [END model]
 
 
-def getAllEmployees(limit = 5, cursor = None):
+def getAllEmployees(cursor = None):
     cursor = int(cursor) if cursor else 0
     query = (Employee.query
              .order_by(Employee.name)
-             .limit(limit)
              .offset(cursor))
     empl = builtin_list(map(from_sql, query.all()))
-    next_page = cursor + limit if len(empl) == limit else None
+    next_page = cursor
     return (empl, next_page)
 
-def getuser(name,password):
-    userInfo = Employee.query.filter_by(name=name).first()
-    if (userInfo is not None):
-        passwordInDatabase = userInfo.password
-        userId = userInfo.employeeid
-        print("userid: {}".format(userId))
-        if password == passwordInDatabase:  # entered password matches one in database
-            return userId
+def getEmployee(name,password):
+    empl = Employee.query.filter_by(name=name).first()
+    if (empl is not None):
+        emplId = empl.employeeid
+        print("emplId: {}".format(emplId))
+        # password = password.encode('utf-8')
+        if empl.verify_password(password):  # entered password matches one in database
+            return emplId
         else:
             return "0"
     else:
@@ -162,13 +143,30 @@ def insertEmpl():
     db.session.commit()
     return from_sql(empl)
 
-def getUserById(id):
+def getEmployeeById(id):
     empl = Employee.query.filter_by(employeeid=id).first()
     print("empl {}".format(empl))
     if not empl:
         return None
     else:
-        empl.verify_password('abg')
+        return empl
+
+def givePoints(fromEmp, toEmp, amount):
+    sender = getEmployeeById(fromEmp)
+    receiver = getEmployeeById(toEmp)
+    senderPoints = sender.pointsReceived - sender.pointsGiven
+    print("sender points balance: {}".format(senderPoints))
+    if int(senderPoints) > amount:
+        sender.pointsGiven += amount
+        receiver.pointsReceived += amount
+        today = date.today()
+        print("Today's date:", today)
+        transaction = Transaction(transactiondate=today, points=amount, senderid = int(fromEmp), receiverid = toEmp)
+        db.session.add(transaction)
+        db.session.commit()
+        return True
+    else:
+        return False
 
 def _create_database():
     """
@@ -181,7 +179,7 @@ def _create_database():
     with app.app_context():
         # db.create_all()
         # insertEmpl()
-        getUserById(15)
+        getEmployeeById(15)
     # print("All tables created")
     print("User added!")
 

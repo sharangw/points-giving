@@ -21,12 +21,10 @@ import ast, json
 
 crud = Blueprint('crud', __name__)
 
-@crud.route('/')
-def pointsHome():
-    return render_template("points.html")
+@crud.route('/givepoints/<id>', methods=['GET', 'POST'])
+def givePoints(id):
 
-@crud.route('/give')
-def givePoints():
+    empl = get_model().getEmployeeById(id)
 
     token = request.args.get('page_token', None)
 
@@ -36,25 +34,45 @@ def givePoints():
     # employees = get_model().getAllEmployees()
     employees, next_page_token = get_model().getAllEmployees(cursor=token)
     print(type(employees))
-    print("employees: {}".format(employees))
 
-    return render_template("give.html", employees=employees, next_page_token = next_page_token)
+    if request.method == 'POST':
+        empSelected = request.form.get("employees")
+        empDict = ast.literal_eval(empSelected)
+        empId = empDict['id']
+        print("empId selected: {}".format(empId))
+        if empId == int(id): # can't choose themselves from the list
+            print("cant choose yourself")
+            return render_template("givepoints.html", empl=empl, employees=employees, invalid=True)
+        else:
+            points = request.form.get("points")
+            print("points: {}".format(points))
+            points = int(points)
+            sentPoints = get_model().givePoints(id,empId,points)
+            if sentPoints:
+                return render_template("givepoints.html", empl=empl, employees=employees, pointsSent=True)
+            else:
+                return render_template("givepoints.html", empl=empl, employees=employees, balanceError=True)
 
-@crud.route('/login', methods=['GET', 'POST'])
+    return render_template("givepoints.html", empl=empl, employees=employees)
+
+@crud.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         data = request.form.to_dict(flat=True)
         name = data['username']
         password = data['password']
-        print("email: {}".format(name))
-        userId = get_model().getuser(name,password)
-        if userId == "0":
+        print("name: {}".format(name))
+        print("password: {}".format(password))
+        emplId = get_model().getEmployee(name,password)
+        print("emplID: {}".format(emplId))
+        if emplId == "0":
             print("wrong credentials")
             return render_template("login.html", invalid = True)
         else:
-            return redirect("/home/{}".format(userId))
+            empl = get_model().getEmployeeById(emplId)
+            return render_template("index.html", empl=empl)
 
-    return render_template("home.html", user={}, invalid = False)
+    return render_template("login.html") #, user={}, invalid = False)
 
 
 # @crud.route('/info')
