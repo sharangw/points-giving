@@ -25,6 +25,8 @@ crud = Blueprint('crud', __name__)
 def givePoints(id):
 
     empl = get_model().getEmployeeById(id)
+    pointsBalance = empl.pointsReceived - empl.pointsGiven
+    balancePercent = pointsBalance * 100 / empl.pointsReceived
 
     token = request.args.get('page_token', None)
 
@@ -49,11 +51,30 @@ def givePoints(id):
             points = int(points)
             sentPoints = get_model().givePoints(id,empId,points)
             if sentPoints:
-                return render_template("givepoints.html", empl=empl, employees=employees, pointsSent=True)
+                return render_template("givepoints.html", empl=empl, employees=employees, pointsSent=True, pointsBalance=pointsBalance, balancePercent=balancePercent)
             else:
-                return render_template("givepoints.html", empl=empl, employees=employees, balanceError=True)
+                return render_template("givepoints.html", empl=empl, employees=employees, balanceError=True, pointsBalance=pointsBalance, balancePercent=balancePercent)
 
-    return render_template("givepoints.html", empl=empl, employees=employees)
+    return render_template("givepoints.html", empl=empl, employees=employees, pointsBalance=pointsBalance, balancePercent=balancePercent)
+
+@crud.route('/redeempoints/<id>', methods=['GET', 'POST'])
+def redeemPoints(id):
+
+    empl = get_model().getEmployeeById(id)
+    pointsBalance = empl.pointsReceived - empl.pointsGiven
+    balancePercent = pointsBalance * 100 / empl.pointsReceived
+
+    if request.method == 'POST':
+        points = request.form.get("points")
+        print("points to redeem: {}".format(points))
+        points = int(points)
+        redeemedPoints = get_model().redeemPoints(id,points)
+        if redeemedPoints:
+            return render_template("redeem.html", empl=empl, pointsRedeemed=True, pointsBalance=pointsBalance, balancePercent=balancePercent)
+        else:
+            return render_template("redeem.html", empl=empl, balanceError=True, pointsBalance=pointsBalance, balancePercent=balancePercent)
+
+    return render_template("redeem.html", empl=empl, pointsBalance=pointsBalance, balancePercent=balancePercent)
 
 @crud.route('/', methods=['GET', 'POST'])
 def login():
@@ -70,9 +91,42 @@ def login():
             return render_template("login.html", invalid = True)
         else:
             empl = get_model().getEmployeeById(emplId)
-            return render_template("index.html", empl=empl)
+            print("admin? {}".format(empl.admin))
+            if empl.admin == 1:
+                return redirect("/admin/{}".format(emplId))
+            else:
+                return redirect("/home/{}".format(emplId))
+            # return render_template("index.html", empl=empl)
 
     return render_template("login.html") #, user={}, invalid = False)
+
+@crud.route('/transactions/<id>')
+def transactions(id):
+
+    empl = get_model().getEmployeeById(id)
+
+    get_model().getTransactionsByEmployee(empl)
+
+    return render_template("transaction.html")
+
+@crud.route('/home/<id>')
+def userHome(id):
+    empl = get_model().getEmployeeById(id)
+
+    pointsBalance = empl.pointsReceived - empl.pointsGiven
+    balancePercent = pointsBalance*100/empl.pointsReceived
+
+    return render_template("index.html", empl = empl, pointsBalance = pointsBalance, balancePercent = balancePercent)
+
+@crud.route('/admin/<id>', methods=['GET', 'POST'])
+def adminHome(id):
+    empl = get_model().getEmployeeById(id)
+
+    if request.method == 'POST':
+        print("reset all points")
+        get_model().resetPoints()
+
+    return render_template("admin.html", empl = empl)
 
 
 # @crud.route('/info')

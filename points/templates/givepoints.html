@@ -30,7 +30,7 @@
     <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
       <!-- Sidebar - Brand -->
-      <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+      <a class="sidebar-brand d-flex align-items-center justify-content-center" href="">
         <div class="sidebar-brand-icon rotate-n-15">
           <i class="iconify" data-icon="twemoji:turkey" data-inline="false" data-width="25px" data-height="25px"></i>
         </div>
@@ -42,7 +42,7 @@
 
       <!-- Nav Item - Dashboard -->
       <li class="nav-item">
-        <a class="nav-link" href="index.html">
+        <a class="nav-link" href="../home/{{empl.employeeid}}">
           <i class="fas fa-fw fa-tachometer-alt"></i>
           <span>Dashboard</span></a>
       </li>
@@ -59,7 +59,7 @@
 
       <!-- Nav Item - Pages Collapse Menu -->
       <li class="nav-item active">
-        <a class="nav-link" href="givepoints.html">
+        <a class="nav-link" href="/givepoints/{{empl.employeeid}}">
           <i class="iconify" data-icon="ant-design:gift-fill" data-inline="false" data-width="16px" data-height="16px"></i>
           <span> Give Points</span>
         </a>
@@ -67,7 +67,7 @@
 
       <!-- Nav Item - Charts -->
       <li class="nav-item">
-        <a class="nav-link" href="redeem.html">
+        <a class="nav-link" href="/redeempoints/{{empl.employeeid}}">
           <i class="iconify" data-icon="uil:money-withdrawal" data-inline="false" data-width="16px" data-height="16px"></i>
           <span> Redeem Points</span></a>
       </li>
@@ -156,7 +156,7 @@
                 </div>
                 
                 <div class="card-body">
-                  <p> Please pick the user who you want to give points to and the amount of points. Make sure you have enough points to make that transaction. NOTE NEED TO MAKE SURE THAT YOU CANT SEND POINTS TO YOURSELF </p>
+                  <p> Please pick the user who you want to give points to and the amount of points. Make sure you have enough points to make that transaction.</p>
                   <br>
                   
                     <div class="row">
@@ -238,15 +238,24 @@
           <div class="row"> 
                           <!-- Points Remaining Monthly -->
             <div class="col-xl-3 col-md-6 mb-4">
-              <div class="card border-left-primary shadow h-100 py-2">
+              <div class="card border-left-info shadow h-100 py-2">
                 <div class="card-body">
                   <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                      <div class="text-xs font-weight-bold text-primary text-uppercase mb-1"> Point Balance </div>
-                      <div class="h5 mb-0 font-weight-bold text-gray-800">{{empl.pointsReceived - empl.pointsGiven}}</div>
+                      <div class="text-xs font-weight-bold text-info text-uppercase mb-1"> Points Balance</div>
+                      <div class="row no-gutters align-items-center">
+                        <div class="col-auto">
+                          <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{pointsBalance}}</div>
+                        </div>
+                        <div class="col">
+                          <div class="progress progress-striped active progress-sm mr-2">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {{balancePercent}}%;"></div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     <div class="col-auto">
-                      <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                      <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
                     </div>
                   </div>
                 </div>
@@ -280,11 +289,6 @@
                       <div class="row no-gutters align-items-center">
                         <div class="col-auto">
                           <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{empl.pointsReceived}}</div>
-                        </div>
-                        <div class="col">
-                          <div class="progress progress-sm mr-2">
-                            <div class="progress-bar bg-info" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
-                          </div>
                         </div>
                       </div>
                     </div>

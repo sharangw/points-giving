@@ -82,6 +82,17 @@ class Transaction(db.Model):
     def __repr__(self):
         return "<Transaction(points='%s', sender=%s, receiver=%d)" % (self.points, self.senderid, self.receiverid)
 
+class Redemption(db.Model):
+    __tablename__ = 'redemption'
+
+    redemptionid = db.Column(db.Integer, primary_key=True)
+    redemptiondate = db.Column(db.Date)
+    points = db.Column(db.Integer)
+    employeeid = db.Column(db.Integer)
+
+    def __repr__(self):
+        return "<Redemption(points='%s', employee=%d)" % (self.points, self.employeeid)
+
 #
 # class Venue(db.Model):
 #     __tablename__ = 'venues'
@@ -130,11 +141,11 @@ def getEmployee(name,password):
 
 def insertEmpl():
     print("herere")
-    empDict = {  "name" : "Test4",
-                 "password": "abg",
+    empDict = {  "name" : "Admin",
+                 "password": "data",
                  "pointsReceived": 0,
                  "pointsGiven": 0,
-                 "admin": "0"
+                 "admin": "1"
               }
 
     empl = Employee(**empDict)
@@ -150,6 +161,24 @@ def getEmployeeById(id):
         return None
     else:
         return empl
+
+# def getTransactionsByEmployee(emp):
+
+    # playerResult = Players.query.filter_by(userId=userId).all()
+    #     print("result: {}".format(playerResult))
+    #     events = []
+    #     for r in playerResult:
+    #         print(r.eventId)
+    #         eventResult = Event.query.filter_by(id = r.eventId).first()
+    #         events.append(eventResult)
+    #     print("events: {}".format(events))
+    #     # eventsJoinVenue = db.session.query(Event,Venue).join(Event, Venue.id == Event.venueId).add_columns(Event.organizer, Event.time, Event.length, Event.description, Event.venueId, Venue.name).filter(Event.id == events.id).all()
+    #     # playerInfo = from_sql(result)
+    #     # print("player info: ".format(playerInfo))
+    #     # TODO: also get venue name by joining table
+    #     if not events:
+    #         return None
+    #     return events
 
 def givePoints(fromEmp, toEmp, amount):
     sender = getEmployeeById(fromEmp)
@@ -168,6 +197,28 @@ def givePoints(fromEmp, toEmp, amount):
     else:
         return False
 
+def redeemPoints(emp, amount):
+    redeemer = getEmployeeById(emp)
+    pointsToRedeem = amount
+    currentPoints = redeemer.pointsReceived - redeemer.pointsGiven
+    print("redeemer points balance: {}".format(currentPoints))
+    if int(currentPoints) > pointsToRedeem:
+        redeemer.pointsReceived -= pointsToRedeem
+        today = date.today()
+        redemption = Redemption(redemptiondate=today, points=pointsToRedeem, employeeid = int(emp))
+        db.session.add(redemption)
+        db.session.commit()
+        return True
+    else:
+        return False
+
+def resetPoints():
+    employees = Employee.query.all()
+    for empl in employees:
+        empl.pointsReceived = 1000
+        empl.pointsGiven = 0
+        db.session.commit()
+
 def _create_database():
     """
     If this script is run directly, create all the tables necessary to run the
@@ -178,8 +229,8 @@ def _create_database():
     init_app(app)
     with app.app_context():
         # db.create_all()
-        # insertEmpl()
-        getEmployeeById(15)
+        insertEmpl()
+        # getEmployeeById(15)
     # print("All tables created")
     print("User added!")
 
