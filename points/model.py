@@ -17,6 +17,7 @@ from flask import Flask, url_for
 from flask_sqlalchemy import SQLAlchemy
 import json
 import bcrypt
+from sqlalchemy import extract
 
 builtin_list = list
 
@@ -93,27 +94,6 @@ class Redemption(db.Model):
     def __repr__(self):
         return "<Redemption(points='%s', employee=%d)" % (self.points, self.employeeid)
 
-#
-# class Venue(db.Model):
-#     __tablename__ = 'venues'
-#
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String(255))
-#     location = db.Column(db.String(255))
-#     description = db.Column(db.String(255))
-#
-#     def toJson(self):
-#         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-#
-#
-# class Players(db.Model):
-#     __tablename__ = 'players'
-#
-#     id = db.Column(db.Integer, primary_key=True)
-#     userId = db.Column(db.Integer)
-#     eventId = db.Column(db.Integer)
-
-
 # [END model]
 
 
@@ -162,23 +142,22 @@ def getEmployeeById(id):
     else:
         return empl
 
-# def getTransactionsByEmployee(emp):
+def getSentTransactionsByEmployee(emp):
 
-    # playerResult = Players.query.filter_by(userId=userId).all()
-    #     print("result: {}".format(playerResult))
-    #     events = []
-    #     for r in playerResult:
-    #         print(r.eventId)
-    #         eventResult = Event.query.filter_by(id = r.eventId).first()
-    #         events.append(eventResult)
-    #     print("events: {}".format(events))
-    #     # eventsJoinVenue = db.session.query(Event,Venue).join(Event, Venue.id == Event.venueId).add_columns(Event.organizer, Event.time, Event.length, Event.description, Event.venueId, Venue.name).filter(Event.id == events.id).all()
-    #     # playerInfo = from_sql(result)
-    #     # print("player info: ".format(playerInfo))
-    #     # TODO: also get venue name by joining table
-    #     if not events:
-    #         return None
-    #     return events
+    transactions = db.session.query(Transaction, Employee).\
+        join(Transaction, Employee.employeeid == Transaction.receiverid).\
+        filter(Transaction.senderid == emp).add_columns(
+        Transaction.transactiondate, Transaction.points, Employee.name).all()
+    print(transactions)
+    return transactions
+
+def getReceivedTransactionsByEmployee(emp):
+        transactions = db.session.query(Transaction, Employee). \
+            join(Transaction, Employee.employeeid == Transaction.senderid). \
+            filter(Transaction.receiverid == emp).add_columns(
+            Transaction.transactiondate, Transaction.points, Employee.name).all()
+        print(transactions)
+        return transactions
 
 def givePoints(fromEmp, toEmp, amount):
     sender = getEmployeeById(fromEmp)
@@ -205,12 +184,35 @@ def redeemPoints(emp, amount):
     if int(currentPoints) > pointsToRedeem:
         redeemer.pointsReceived -= pointsToRedeem
         today = date.today()
+        # rdate = date(today.year, 10, 17)
+        # redemption = Redemption(redemptiondate=rdate, points=pointsToRedeem, employeeid=int(emp))
         redemption = Redemption(redemptiondate=today, points=pointsToRedeem, employeeid = int(emp))
         db.session.add(redemption)
         db.session.commit()
         return True
     else:
         return False
+
+def getAllRedemptions():
+    redemptions = db.session.query(Redemption, Employee).join(Redemption, Employee.employeeid == Redemption.employeeid).add_columns(Redemption.redemptiondate, Redemption.points, Employee.name).all()
+    return redemptions
+
+def getRedemptionsByEmployee(emp):
+    redemptions = db.session.query(Redemption, Employee).\
+        join(Redemption, Employee.employeeid == Redemption.employeeid).\
+        filter(Redemption.employeeid == emp).add_columns(
+        Redemption.redemptiondate, Redemption.points, Employee.name).all()
+    return redemptions
+
+def getRedemptionsByMonth(month):
+    months = dict(January=1, February=2, March=3, April=4, May=5, June=6, July=7,
+                  August=8, September=9, October=10, November=11, December=12)
+    redemptions = db.session.query(Redemption, Employee). \
+        join(Redemption, Employee.employeeid == Redemption.employeeid). \
+        filter(extract('month', Redemption.redemptiondate)==months[month]).add_columns(
+        Redemption.redemptiondate, Redemption.points, Employee.name).all()
+    print(redemptions)
+    return redemptions
 
 def resetPoints():
     employees = Employee.query.all()

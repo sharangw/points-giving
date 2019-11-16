@@ -44,13 +44,15 @@ def givePoints(id):
         print("empId selected: {}".format(empId))
         if empId == int(id): # can't choose themselves from the list
             print("cant choose yourself")
-            return render_template("givepoints.html", empl=empl, employees=employees, invalid=True)
+            return render_template("givepoints.html", empl=empl, employees=employees, invalid=True, pointsBalance=pointsBalance, balancePercent=balancePercent)
         else:
             points = request.form.get("points")
             print("points: {}".format(points))
             points = int(points)
             sentPoints = get_model().givePoints(id,empId,points)
             if sentPoints:
+                pointsBalance = empl.pointsReceived - empl.pointsGiven
+                balancePercent = pointsBalance * 100 / empl.pointsReceived
                 return render_template("givepoints.html", empl=empl, employees=employees, pointsSent=True, pointsBalance=pointsBalance, balancePercent=balancePercent)
             else:
                 return render_template("givepoints.html", empl=empl, employees=employees, balanceError=True, pointsBalance=pointsBalance, balancePercent=balancePercent)
@@ -70,6 +72,8 @@ def redeemPoints(id):
         points = int(points)
         redeemedPoints = get_model().redeemPoints(id,points)
         if redeemedPoints:
+            pointsBalance = empl.pointsReceived - empl.pointsGiven
+            balancePercent = pointsBalance * 100 / empl.pointsReceived
             return render_template("redeem.html", empl=empl, pointsRedeemed=True, pointsBalance=pointsBalance, balancePercent=balancePercent)
         else:
             return render_template("redeem.html", empl=empl, balanceError=True, pointsBalance=pointsBalance, balancePercent=balancePercent)
@@ -105,9 +109,10 @@ def transactions(id):
 
     empl = get_model().getEmployeeById(id)
 
-    get_model().getTransactionsByEmployee(empl)
+    sentTransactions = get_model().getSentTransactionsByEmployee(id)
+    receivedTransactions = get_model().getReceivedTransactionsByEmployee(id)
 
-    return render_template("transaction.html")
+    return render_template("transaction.html", empl=empl, sentTransactions=sentTransactions, receivedTransactions = receivedTransactions)
 
 @crud.route('/home/<id>')
 def userHome(id):
@@ -127,6 +132,36 @@ def adminHome(id):
         get_model().resetPoints()
 
     return render_template("admin.html", empl = empl)
+
+@crud.route('/admin/<id>/redemptions', methods=['GET', 'POST'])
+def adminRedemptions(id):
+    redemptions = get_model().getAllRedemptions()
+    empl = get_model().getEmployeeById(id)
+
+    token = request.args.get('page_token', None)
+    if token:
+        token = token.encode('utf-8')
+    employees, next_page_token = get_model().getAllEmployees(cursor=token)
+
+    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+    if request.method == 'POST':
+
+        # view by employee
+        if request.form.get("employees") is not None:
+            empSelected = request.form.get("employees")
+            empDict = ast.literal_eval(empSelected)
+            empId = empDict['id']
+            redemptions = get_model().getRedemptionsByEmployee(empId)
+
+        # view by month
+        if request.form.get("months") is not None:
+            monthSelected = request.form.get("months")
+            redemptions = get_model().getRedemptionsByMonth(monthSelected)
+
+        return render_template("redemptions.html", redemptions=redemptions, empl=empl, employees=employees, months=months)
+
+    return render_template("redemptions.html", redemptions=redemptions, empl = empl, employees=employees, months=months)
 
 
 # @crud.route('/info')
