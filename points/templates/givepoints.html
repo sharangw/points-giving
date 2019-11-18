@@ -74,7 +74,7 @@
 
       <!-- Nav Item - Transactions --->
       <li class="nav-item">
-        <a class="nav-link" href="transaction.html">
+        <a class="nav-link" href="/transactions/{{empl.employeeid}}">
           <i class="iconify" data-icon="websymbol:arrows-cw" data-inline="false" data-width="16px" data-height="16px"></i>
           <span> Transactions </span></a>
       </li>
@@ -114,16 +114,13 @@
             <li class="nav-item dropdown no-arrow">
               <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{empl.name}}</span>
-                <img class="img-profile rounded-circle" src="https://i.imgur.com/HUZvaXJ.jpg">
+                <img class="img-profile rounded-circle" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTIiQ_fn4r55g3d4xXt6S7sN6zwoz_YsV6RShFJPAZuhtgRo1zTNw&s">
               </a>
               <!-- Dropdown - User Information -->
               <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-                <a class="dropdown-item" href="#">
-                  <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                  Profile
-                </a>
+
       
-                <div class="dropdown-divider"></div>
+
                 <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
                   <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                   Logout
@@ -160,16 +157,17 @@
                   <br>
                   
                     <div class="row">
-                      <div class="col-md-3"> </div>  <div class="col-auto">  </div>
+                      <div class="col-md-5"> </div>  <div class="col-auto">  </div>  <div class="col-auto">  </div>
                       <p class=" text-m font-weight-bold text-primary text-uppercase mb-3"> TO: </p>
                       <div class="col-md-3"> </div>  <div class="col-auto">  </div>
                       <div class="col-auto"> </div>
-                      <p class=" text-m font-weight-bold text-primary text-uppercase mb-3"> AMOUNT OF POINTS: </p>
+
                     </div>
 
                     <div class ='row'>
-                      <div class="col-md-2"> </div> <div class="col-auto">  </div> 
-                      <div class="col-auto">  </div>
+                      <div class="col-md-3"> </div> <div class="col-auto">  </div>
+                      <div class="col-auto">  </div> <div class="col-auto">  </div>
+                      <div class="col-auto">  </div>  <div class="col-auto">  </div>
                       <div class="search_categories">
                         <div class="select">
                            <select required name="employees" id="employees">
@@ -184,8 +182,14 @@
                         <p style="color:red">Oops! You cannot give yourself points. Choose another employee.</p>
                         {% endif %}
                       </div>
+                    </div>
 
-                      <div class="col-md-1"> </div> <div class="col-auto">  </div> <div class="col-auto">  </div> <div class="col-auto">  </div> <div class="col-auto">  </div>
+                    <div class="col-md-1"> </div> <div class="col-auto"> </div>  <div class="col-auto">  </div>
+
+                    <div class="row">
+                        <div class="col-md-3"> </div> <div class="col-auto">  </div> <div class="col-auto">  </div>
+                        <div class="col-auto">  </div> <div class="col-auto">  </div> <div class="col-auto">  </div>
+                       <p class=" text-m font-weight-bold text-primary text-uppercase mb-3"> AMOUNT OF POINTS: </p>
 
                       <form class="d-none d-sm-inline-block mr-auto ml-md-3 my-4 my-md-0 mw-100 navbar-search" >
                         <div class="input-group">
@@ -201,9 +205,11 @@
                       {% if pointsSent %}
                         <p style="color:green">Points sent successfully!</p>
                       {% endif %}
-
-
                     </div>
+
+
+
+
                     <br>
                     
                     <div class='row'>
@@ -217,7 +223,7 @@
                       <div class="col-md-2"> </div> <div class="col-auto"> </div><div class="col-auto"> </div>
                       <div class="col-auto"> </div> <div class="col-auto"> </div> <div class="col-auto">  </div>
                         <div class="input-group">
-                          <input type="text" class="form-control bg-light border-0 large" placeholder="Input message..." aria-label="Search" aria-describedby="basic-addon2">
+                          <input type="text" id="message" name="message" class="form-control bg-light border-0 large" placeholder="Thank you..." aria-label="Search" aria-describedby="basic-addon2">
                           
                           <div class="input-group-append">
                             <button class="btn btn-primary" type="submit">
@@ -244,7 +250,7 @@
                       <div class="text-xs font-weight-bold text-info text-uppercase mb-1"> Points Balance</div>
                       <div class="row no-gutters align-items-center">
                         <div class="col-auto">
-                          <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{pointsBalance}}</div>
+                          <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{empl.pointsBalance}}</div>
                         </div>
                         <div class="col">
                           <div class="progress progress-striped active progress-sm mr-2">
@@ -284,7 +290,7 @@
                 <div class="card-body">
                   <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                      <div class="text-xs font-weight-bold text-info text-uppercase mb-1"> Points Received</div>
+                      <div class="text-xs font-weight-bold text-info text-uppercase mb-1"> Redeemable Points</div>
                       <div class="row no-gutters align-items-center">
                         <div class="col-auto">
                           <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{empl.pointsReceived}}</div>
@@ -292,7 +298,7 @@
                       </div>
                     </div>
                     <div class="col-auto">
-                      <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                      <i class="iconify" data-icon="emojione-monotone:money-mouth-face" data-inline="false" data-width="28px" data-height="28px"></i>
                     </div>
                   </div>
                 </div>
@@ -305,8 +311,8 @@
                 <div class="card-body">
                   <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                      <div class="text-xs font-weight-bold text-warning text-uppercase mb-1"> Number of Gifters</div>
-                      <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+                      <div class="text-xs font-weight-bold text-warning text-uppercase mb-1"> Number of Gifts</div>
+                      <div class="h5 mb-0 font-weight-bold text-gray-800">{{numberOfGifts}}</div>
                     </div>
                     <div class="col-auto">
                       <span class="iconify" data-icon="ic:baseline-people-outline" style="color:#DDDFEB" data-inline="false" data-width="34px" data-height="34px"></span>

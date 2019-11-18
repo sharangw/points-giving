@@ -46,6 +46,7 @@ class Employee(db.Model):
     employeeid = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
     password = db.Column(db.String(255))
+    pointsBalance = db.Column(db.Integer)
     pointsReceived = db.Column(db.Integer)
     pointsGiven = db.Column(db.Integer)
     admin = db.Column(db.String(1), default="0")
@@ -68,7 +69,7 @@ class Employee(db.Model):
             return False
 
     def __repr__(self):
-        return "<Employee(name='%s', points=%s)" % (self.name, str(self.pointsReceived-self.pointsGiven))
+        return "<Employee(name='%s', points=%s)" % (self.name, str(self.pointsBalance))
 
 
 class Transaction(db.Model):
@@ -79,6 +80,7 @@ class Transaction(db.Model):
     points = db.Column(db.Integer)
     senderid = db.Column(db.Integer)
     receiverid = db.Column(db.Integer)
+    message = db.Column((db.String(255)))
 
     def __repr__(self):
         return "<Transaction(points='%s', sender=%s, receiver=%d)" % (self.points, self.senderid, self.receiverid)
@@ -100,6 +102,7 @@ class Redemption(db.Model):
 def getAllEmployees(cursor = None):
     cursor = int(cursor) if cursor else 0
     query = (Employee.query
+             .filter(Employee.admin=='0')
              .order_by(Employee.name)
              .offset(cursor))
     empl = builtin_list(map(from_sql, query.all()))
@@ -121,11 +124,12 @@ def getEmployee(name,password):
 
 def insertEmpl():
     print("herere")
-    empDict = {  "name" : "Admin",
-                 "password": "data",
+    empDict = {  "name" : "Huevos",
+                 "password": "egg",
                  "pointsReceived": 0,
                  "pointsGiven": 0,
-                 "admin": "1"
+                 "pointsBalance":0,
+                 "admin": "0"
               }
 
     empl = Employee(**empDict)
@@ -147,7 +151,7 @@ def getSentTransactionsByEmployee(emp):
     transactions = db.session.query(Transaction, Employee).\
         join(Transaction, Employee.employeeid == Transaction.receiverid).\
         filter(Transaction.senderid == emp).add_columns(
-        Transaction.transactiondate, Transaction.points, Employee.name).all()
+        Transaction.transactiondate, Transaction.points, Transaction.message, Employee.name).all()
     print(transactions)
     return transactions
 
@@ -155,21 +159,22 @@ def getReceivedTransactionsByEmployee(emp):
         transactions = db.session.query(Transaction, Employee). \
             join(Transaction, Employee.employeeid == Transaction.senderid). \
             filter(Transaction.receiverid == emp).add_columns(
-            Transaction.transactiondate, Transaction.points, Employee.name).all()
+            Transaction.transactiondate, Transaction.points, Transaction.message, Employee.name).all()
         print(transactions)
         return transactions
 
-def givePoints(fromEmp, toEmp, amount):
+def givePoints(fromEmp, toEmp, amount, message):
     sender = getEmployeeById(fromEmp)
     receiver = getEmployeeById(toEmp)
-    senderPoints = sender.pointsReceived - sender.pointsGiven
+    senderPoints = sender.pointsBalance
     print("sender points balance: {}".format(senderPoints))
-    if int(senderPoints) > amount:
+    if int(senderPoints) >= amount:
+        sender.pointsBalance -= amount
         sender.pointsGiven += amount
         receiver.pointsReceived += amount
         today = date.today()
         print("Today's date:", today)
-        transaction = Transaction(transactiondate=today, points=amount, senderid = int(fromEmp), receiverid = toEmp)
+        transaction = Transaction(transactiondate=today, points=amount, senderid = int(fromEmp), receiverid = toEmp, message=message)
         db.session.add(transaction)
         db.session.commit()
         return True
@@ -179,13 +184,11 @@ def givePoints(fromEmp, toEmp, amount):
 def redeemPoints(emp, amount):
     redeemer = getEmployeeById(emp)
     pointsToRedeem = amount
-    currentPoints = redeemer.pointsReceived - redeemer.pointsGiven
-    print("redeemer points balance: {}".format(currentPoints))
-    if int(currentPoints) > pointsToRedeem:
+    currentPoints = redeemer.pointsReceived
+    print("redeemer points to redeem: {}".format(currentPoints))
+    if int(currentPoints) >= pointsToRedeem:
         redeemer.pointsReceived -= pointsToRedeem
         today = date.today()
-        # rdate = date(today.year, 10, 17)
-        # redemption = Redemption(redemptiondate=rdate, points=pointsToRedeem, employeeid=int(emp))
         redemption = Redemption(redemptiondate=today, points=pointsToRedeem, employeeid = int(emp))
         db.session.add(redemption)
         db.session.commit()
@@ -214,11 +217,135 @@ def getRedemptionsByMonth(month):
     print(redemptions)
     return redemptions
 
+def resultEnginetoDict(result):
+    d, a = {}, []
+    for rowproxy in result:
+        # rowproxy.items() returns an array like [(key0, value0), (key1, value1)]
+        for column, value in rowproxy.items():
+            # build up the dictionary
+            d = {**d, **{column: value}}
+        a.append(d)
+
+        return a
+
+def getAllPoints():
+    result = db.engine.execute("select extract(month from transactiondate) as tmonth, sum(tra.points) as rewardsGivenOut, "
+                        "sum(red.points) as rewardsCashedIn " +
+                        "from points.transaction tra, points.redemption red " +
+                        "group by extract(month from transactiondate);")
+
+    d, allPoints = {}, []
+    for rowproxy in result:
+        # rowproxy.items() returns an array like [(key0, value0), (key1, value1)]
+        for column, value in rowproxy.items():
+            # build up the dictionary
+            d = {**d, **{column: value}}
+        allPoints.append(d)
+
+    return allPoints
+
+def getWellLikedEmployeesByMonth(month):
+    months = dict(January=1, February=2, March=3, April=4, May=5, June=6, July=7,
+                  August=8, September=9, October=10, November=11, December=12)
+
+    monthSelected = months[month]
+    print("month selected {}".format(monthSelected))
+    result = db.engine.execute(
+        "select emp.name as name, sum(tra.points) as receivedPoints from points.transaction tra " +
+        "inner join points.employee emp on tra.receiverid = emp.employeeid " +
+        "where extract(month from tra.transactiondate) = " + str(monthSelected) + " "
+        "group by emp.employeeid " +
+        "order by receivedPoints desc " +
+        "limit 5;")
+
+    d, allPoints = {}, []
+    for rowproxy in result:
+        # rowproxy.items() returns an array like [(key0, value0), (key1, value1)]
+        for column, value in rowproxy.items():
+            # build up the dictionary
+            d = {**d, **{column: value}}
+        allPoints.append(d)
+
+    return allPoints
+
+def getAllPointsByEmployee():
+    result = db.engine.execute(
+        "select red.employeeid, sum(red.points) as redeemedPoints, sum(tra.points) as receivedPoints from points.redemption red"+
+        "inner join points.transaction tra on red.employeeid = tra.receiverid"+
+        "group by red.employeeid"+
+        "order by receivedPoints desc;")
+
+    d, allPoints = {}, []
+    for rowproxy in result:
+        # rowproxy.items() returns an array like [(key0, value0), (key1, value1)]
+        for column, value in rowproxy.items():
+            # build up the dictionary
+            d = {**d, **{column: value}}
+        allPoints.append(d)
+
+    return allPoints
+
+def getWellLikedEmployees():
+    result = db.engine.execute(
+        "select emp.name as name, sum(tra.points) as receivedPoints from points.transaction tra "+
+        "inner join points.employee emp on tra.receiverid = emp.employeeid "+
+        "group by emp.employeeid "+
+        "order by receivedPoints desc "+
+        "limit 5;")
+
+    d, pointsReceivedByEmp = {}, []
+    for rowproxy in result:
+        # rowproxy.items() returns an array like [(key0, value0), (key1, value1)]
+        for column, value in rowproxy.items():
+            # build up the dictionary
+            d = {**d, **{column: value}}
+        pointsReceivedByEmp.append(d)
+
+    return pointsReceivedByEmp
+
+def getStingyEmployees():
+
+    # result = db.engine.execute("select name, pointsGiven, 1000-pointsGiven as pointsRemaining from points.employee "
+    #                            "where pointsGiven < 1000 and admin = \"0\" " +
+    #                            "order by pointsGiven asc;")
+
+    ## use view
+    result = db.engine.execute("select * from noPointsGiven;")
+
+    d, pointsNotGiven = {}, []
+    for rowproxy in result:
+        # rowproxy.items() returns an array like [(key0, value0), (key1, value1)]
+        for column, value in rowproxy.items():
+            # build up the dictionary
+            d = {**d, **{column: value}}
+        pointsNotGiven.append(d)
+
+    return pointsNotGiven
+
+def getNumberOfGifts(id):
+
+    result = db.engine.execute("select count(transactionid) as gifts from points.transaction where receiverid={};".format(id))
+
+    d, giftsReceived = {}, []
+    for rowproxy in result:
+        # rowproxy.items() returns an array like [(key0, value0), (key1, value1)]
+        for column, value in rowproxy.items():
+            # build up the dictionary
+            d = {**d, **{column: value}}
+        giftsReceived.append(d)
+
+        gifts = giftsReceived[0]
+
+        return gifts['gifts']
+
+# pointsReceived is pointsToGive
+# pointsGiven is pointsToRedeem
 def resetPoints():
     employees = Employee.query.all()
     for empl in employees:
-        empl.pointsReceived = 1000
+        empl.pointsBalance = 1000
         empl.pointsGiven = 0
+        # empl.pointsReceived = 0
         db.session.commit()
 
 def _create_database():
